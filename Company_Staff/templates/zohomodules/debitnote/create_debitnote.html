@@ -2517,7 +2517,6 @@
 
 <script>
     document.getElementById('billTypeSelect').addEventListener('change', function() {
-        alert("ok")
         var vendorId = document.getElementById('customer').value;
         var billType = this.value;
        
@@ -5730,8 +5729,7 @@ if (vals == "Other Expense") {
         if (billnumber != "" && billType != "") {
             console.log('Bill number:', billnumber);
             console.log('Bill type:', billType);
-            alert(billnumber)
-            alert(billType)
+          
 
             
             $.ajax({

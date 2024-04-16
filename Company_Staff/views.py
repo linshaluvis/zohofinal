@@ -25980,7 +25980,6 @@ def createdebitnote(request):
                 company = com,
                 login_details = com.login_details,
                 vendor = Vendor.objects.get(id = request.POST['customerId']),
-                bills=bill_id,
                 vendor_email = request.POST['customer_email'],
                 billing_address = request.POST['bill_address'],
                 gst_type = request.POST['customer_gst_type'],
@@ -26413,7 +26412,6 @@ def updatedebitnote(request, id):
         rec_inv = debitnote.objects.get(id = id)
         if request.method == 'POST':
             invNum = request.POST['rec_invoice_no']
-            bill_id = Bill.objects.get(Bill_Number =  request.POST['bill_number'])
 
 
             PatternStr = []
@@ -26438,7 +26436,6 @@ def updatedebitnote(request, id):
                 return HttpResponse(res)
 
             rec_inv.vendor = Vendor.objects.get(id = request.POST['customerId'])
-            rec_inv.bills= Bill.objects.get(Bill_Number =  request.POST['bill_number'])
             rec_inv.vendor_email = request.POST['customer_email']
             rec_inv.billing_address = request.POST['bill_address']
             rec_inv.gst_type = request.POST['customer_gst_type']
@@ -26555,7 +26552,7 @@ def updatedebitnote(request, id):
        return redirect('/')
    
 def downloaddebitnoteSampleImportFile(request):
-    recInv_table_data = [['SLNO','VENDOR','DATE','PLACE OF SUPPLY','DB NO','PRICE LIST','DESCRIPTION','SUB TOTAL','IGST','CGST','SGST','TAX AMOUNT','ADJUSTMENT','SHIPPING CHARGE','GRAND TOTAL','ADVANCE'],['1', 'Kevin Debryne', '2024-03-20', '[KL]-Kerala','DB100','','','1000','0','25','25','50','0','0','1050','1000']]
+    recInv_table_data = [['SLNO','VENDOR','DATE','PLACE OF SUPPLY','DB NO','BILL NO','BILL TYPE','PRICE LIST','DESCRIPTION','SUB TOTAL','IGST','CGST','SGST','TAX AMOUNT','ADJUSTMENT','SHIPPING CHARGE','GRAND TOTAL','ADVANCE'],['1', 'Kevin Debryne', '2024-03-20', '[KL]-Kerala','DB100','bill-002','bills','','','1000','0','25','25','50','0','0','1050','1000']]
     items_table_data = [['DB NO', 'PRODUCT','HSN','QUANTITY','PRICE','TAX PERCENTAGE','DISCOUNT','TOTAL'], ['1', 'Test Item 1','789987','1','1000','5','0','1000']]
 
     wb = Workbook()
@@ -26615,7 +26612,7 @@ def importdebitnoteFromExcel(request):
                 return redirect(debitnote_list)
             
             ws = wb["DEBIT_NOTE"]
-            rec_inv_columns = ['SLNO','VENDOR','DATE','PLACE OF SUPPLY','DB NO','PRICE LIST','DESCRIPTION','SUB TOTAL','IGST','CGST','SGST','TAX AMOUNT','ADJUSTMENT','SHIPPING CHARGE','GRAND TOTAL','ADVANCE']
+            rec_inv_columns = ['SLNO','VENDOR','DATE','PLACE OF SUPPLY','DB NO','BILL NO','BILL TYPE','PRICE LIST','DESCRIPTION','SUB TOTAL','IGST','CGST','SGST','TAX AMOUNT','ADJUSTMENT','SHIPPING CHARGE','GRAND TOTAL','ADVANCE']
             rec_inv_sheet = [cell.value for cell in ws[1]]
             if rec_inv_sheet != rec_inv_columns:
                 print('invalid sheet')
@@ -26623,8 +26620,8 @@ def importdebitnoteFromExcel(request):
                 return redirect(debitnote_list)
 
             for row in ws.iter_rows(min_row=2, values_only=True):
-                slno, vendor,date,place_of_supply, debitnote_no, price_list, description, subtotal, igst, cgst, sgst, taxamount, adjustment, shipping, grandtotal, advance = row
-                if slno is None  or vendor is None  or date is None or place_of_supply is None  or debitnote_no is None  or subtotal is None or taxamount is None or grandtotal is None:
+                slno, vendor,date,place_of_supply, debitnote_no,bill_no,bill_type, price_list, description, subtotal, igst, cgst, sgst, taxamount, adjustment, shipping, grandtotal, advance = row
+                if slno is None  or vendor is None  or date is None or place_of_supply is None  or debitnote_no is None or bill_no is None or bill_type is None  or subtotal is None or taxamount is None or grandtotal is None:
                     print('debitnote == invalid data')
                     messages.error(request,'`debitnote` sheet entries missing required fields.! Please check.')
                     return redirect(debitnote_list)
@@ -26650,7 +26647,7 @@ def importdebitnoteFromExcel(request):
             existing_pattern = []
             ws = wb['DEBIT_NOTE']
             for row in ws.iter_rows(min_row=2, values_only=True):
-                slno, vendor,debit_note_date,place_of_supply, debit_note_no, price_list, description, subtotal, igst, cgst, sgst, taxamount, adjustment, shipping, grandtotal, advance = row
+                slno, vendor,debit_note_date,place_of_supply, debit_note_no,bill_no,bill_type, price_list, description, subtotal, igst, cgst, sgst, taxamount, adjustment, shipping, grandtotal, advance = row
                 recInvNo = slno
                 if slno is None:
                     continue
@@ -26752,6 +26749,8 @@ def importdebitnoteFromExcel(request):
                     reference_no = new_number,
                     debitnote_no = debit_note_no,
                     debitnote_date = debit_note_date,
+                    bill_no=bill_no,
+                    bill_type=bill_type,
                     price_list_applied = True if priceList is not None else False,
                     price_list = priceList,
                     payment_method = None,

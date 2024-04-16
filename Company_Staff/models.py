@@ -1596,7 +1596,6 @@ class debitnote(models.Model):
     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE,null=True)
     login_details = models.ForeignKey(LoginDetails, on_delete=models.CASCADE,null=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE,null=True)
-    bills = models.ForeignKey(Bill, on_delete=models.CASCADE,null=True)
 
     
     profile_name = models.CharField(max_length=100, null=True, blank=True)
