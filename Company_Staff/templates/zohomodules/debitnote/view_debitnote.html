@@ -358,7 +358,7 @@
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'company_dashboard' %}" class="text-warning-emphasis">Dashboard</a></li>
         <li class="breadcrumb-item"><a class="text-warning-emphasis">Purchase</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'debitnote_list' %}" class="text-warning-emphasis">Debit Note</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'debitnote_list' %}" class="text-warning-emphasis">Vendor Credit</a></li>
         <li class="breadcrumb-item" aria-current="page" id="over">Overview</li>
         <li class="breadcrumb-item" aria-current="page" id="tmplt" style="display: none;">Templates</li>
         <li class="breadcrumb-item" aria-current="page" id="slp" style="display: none;">Slip</li>
@@ -371,7 +371,7 @@
             <!-- Left Side: Table -->
             <div class="col-md-12 col-lg-4" style="background-color: black; border-radius: 1vh;">
               <div class="p-4"> 
-                <h6 class="pt-3" style="font-size: 1.8rem; color: white;">All debitnotes</h6>
+                <h6 class="pt-3" style="font-size: 1.8rem; color: white;">All Vendor Credit</h6>
                 <div class="d-flex justify-content-between gap-1 mt-2 mr-4">
                   <input class="form-control text-black bg-light mt-4" type="text" id="search" placeholder="Search..." style="margin-right: 10%;">
 
@@ -380,8 +380,8 @@
                   </a>
                   <div class="dropdown-menu ">
                       <a class="dropdown-item text-black" href="" >All</a>
-                      <a class="dropdown-item text-black" onclick="sortTable(0)">Debitnote Name</a>
-                      <a class="dropdown-item text-black" onclick="sortTable(1)">Debitnote NO.</a>
+                      <a class="dropdown-item text-black" onclick="sortTable(0)"> Name</a>
+                      <a class="dropdown-item text-black" onclick="sortTable(1)">Vendor Credit NO.</a>
                   </div>
   
                   <a class="btn btn-outline-warning small_btn mt-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="button">
@@ -437,7 +437,7 @@
             <div class="col-md-12 col-lg-8">
               <div style="background-color: black; border-radius: 1vh;">
                 <div class="card-header p-4">
-                  <h6 class="mt-3" style="font-size: 1.8rem; color: white;">Debit Note</h6><br>
+                  <h6 class="mt-3" style="font-size: 1.8rem; color: white;">Vendor Credit</h6><br>
                   {% for message in messages %}
                   <h5>
                     <div class="alert alert-danger message text-center" style="color: black;" id="alert_danger">
@@ -479,7 +479,7 @@
                           {% comment %} <a class="btn btn-outline-warning small_btn mt-2 ms-1" style="display: none;" onclick="printSection('whatToPrint')" title="PRINT TEMPLATE" id="printBtn">
                             <i class="fa fa-print"></i> 
                           </a> {% endcomment %}
-                        <a class="btn btn-outline-warning small_btn mt-2 ms-1" href="{% url 'deletedebit_note' invoice.id %}" onclick="return confirm('Are you sure you want to delete this debit_note  - {{invoice.debitnote_no}} ?')" title="DELETE" id="delete_btn">
+                        <a class="btn btn-outline-warning small_btn mt-2 ms-1" href="{% url 'deletedebit_note' invoice.id %}" onclick="return confirm('Are you sure you want to delete this Vendor Credit  - {{invoice.debitnote_no}} ?')" title="DELETE" id="delete_btn">
                           <i class="fa fa-trash"></i>
                         </a>
                         <a class="btn btn-outline-warning small_btn mt-2 ms-1" style="display: none;" title="SHARE" id="share_btn" data-bs-toggle="dropdown" aria-expanded="false">
@@ -589,12 +589,12 @@
 
                       <div class="row mt-4">
                         <div class="col-md-8">
-                          <h5 class="fw-bold" style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Debit Note Details</h5>
+                          <h5 class="fw-bold" style="border-bottom: 1px solid rgba(128, 128, 128, 0.6); width: fit-content;">Vendor Credit Details</h5>
                         </div>
                         <div class="col-md-4"></div>
                       </div>
                       <div class="d-flex px-3 justify-content-between text-black mb-2">
-                        <h6 class="mb-0">Debit Note No.</h6>
+                        <h6 class="mb-0">Vendor Credit No.</h6>
                         <p class="mb-0 text-right fw-bold">{{invoice.debitnote_no}}</p>
                       </div>
                       <div class="d-flex px-3 justify-content-between text-black mb-2">
@@ -635,11 +635,11 @@
                     </div>
 
                     <div class="col-md-6 px-3">
-                      <div class="px-3 py-3 mb-3" style="background-color: #383838; border-radius: 6px;">
-                        <h4 class="text-white my-3" style="text-align: center;">Debit Note Tax Details</h4>
+                      <div class="px-3 py-3 mb-3" style="background-color: rgb(30, 30, 30); border-radius: 6px;">
+                        <h4 class="text-white my-3" style="text-align: center;">Vendor Credit Tax Details</h4>
                         <hr class="text-white" style="margin-left: 5%; margin-right: 5%">
                         <div class="d-flex justify-content-between mb-4">
-                            <h6 class="text-white" style="font-weight: 600;">Debit Note Status</h6>
+                            <h6 class="text-white" style="font-weight: 600;">Vendor Credit Status</h6>
                             {% if invoice.status == 'Draft' %} <span class="text-info h5" style="font-weight: 600;">DRAFT</span> {% else %} <span class="text-warning h5"  style="font-weight: 600;">SAVED</span> {% endif %}
                         </div>
                         <div class="d-flex justify-content-between mb-4 text-white">
@@ -686,6 +686,20 @@
                             <h6 class="text-white">Grand Total</h6>
                             <span class="font-weight-bold">{{ invoice.grandtotal }}</span>
                         </div>
+                        <hr class="my-4 text-white">
+
+                        {% if invoice.advance_paid != 0 %}
+                        <div class="d-flex justify-content-between mb-4 text-white">
+                            <h6 class="text-white">Advance paid</h6>
+                            {{invoice.advance_paid }}
+                        </div>
+                        {% endif %}
+                        {% if invoice.balance != 0 %}
+                        <div class="d-flex justify-content-between mb-4 text-white">
+                            <h6 class="text-white">Balance</h6>
+                            {{invoice.balance }}
+                        </div>
+                        {% endif %}
                       </div>
                     </div>
                   </div>
@@ -742,7 +756,7 @@
 
                         <div class="ml-4 mt-2" style="color: black;">
                             <div class="row">
-                                <div class="col-md-6 text-left">Debit Note No:</div>
+                                <div class="col-md-6 text-left">Vendor Credit No:</div>
                                 <div class="col-md-5 text-right">{{invoice.debitnote_no}}</div>
                             </div>
                             {% if invoice.salesOrder_no  %}
@@ -856,6 +870,22 @@
                             <span><strong>TOTAL</strong></span>
                             <span><strong><span>&#8377; </span>{{invoice.grandtotal}}</strong></span>
                         </div>
+                        <hr class="my-4 text-white">
+
+                        {% if invoice.advance_paid != 0 %}
+                        <div class="subtot-item d-flex justify-content-between">
+                          <span>Advance paid</span>
+                          <span><span>&#8377; </span> {{invoice.advance_paid }}</span>
+                      </div>
+                        
+                        {% endif %}
+                        {% if invoice.balance != 0 %}
+                        <div class="subtot-item d-flex justify-content-between">
+                          <span>Balance</span>
+                          <span><span>&#8377; </span>{{invoice.balance}}</span>
+                      </div>
+                      {% endif %}
+
                         <div class="divider"></div>
                         <div class="paid-by mb-4 d-flex justify-content-between">
                             <span>Paid By:</span>
@@ -900,7 +930,7 @@
                                   <span class="bg-white text-black px-4 py-2" style="border-radius: 3px;">{{invoice.status}}</span>
                                 </div>
                                 <div class="col-6">
-                                  <h4 class="text-white p-2 fw-bold">DEBIT NOTE</h4>
+                                  <h4 class="text-white text-uppercase p-2 fw-bold">Vendor Credit</h4>
                                 </div>
                                 <div class="col-3">
                                   <span class="fw-bold me-2 h5 text-white float-end">#{{invoice.debitnote_no}}</span>
@@ -1042,6 +1072,29 @@
                                                   <th style="color: #000;">:</th>
                                                   <th class="text-right" style="color: #000;">{{invoice.grandtotal}} /-</th>
                                               </tr>
+                                            </tbody>
+                                          </table>
+                                              <hr style="background-color: #000000;">
+                                      <table class="table table-borderless">
+                                          <tbody>
+                                              {% if invoice.advance_paid != 0 %}
+
+                                              <tr >
+                                                <th style="color: #000;">Advance Paid </th>
+                                                <td style="color: #000;">:</td>
+                                                <th class="text-right" style="color: #000;">{{invoice.advance_paid}} /-</th>
+                                            </tr>
+                                            {% endif %}
+
+                                            {% if invoice.balance != 0 %}
+
+                                            <tr >
+                                              <th style="color: #000;">Balance </th>
+                                              <th style="color: #000;">:</th>
+                                              <th class="text-right" style="color: #000;">{{invoice.balance}} /-</th>
+                                          </tr>
+                                          {% endif %}
+
                                           </tbody>
                                       </table>
                                   </div>
@@ -1064,10 +1117,10 @@
                                   <span class="bg-warning text-black px-4 py-2" style="border-radius: 3px;">{{invoice.status}}</span>
                                 </div>
                                 <div class="col-6">
-                                  <h4 class="text-black p-2 fw-bold">DEBIT NOTE</h4>
+                                  <h4 class="text-black p-2 fw-bold text-uppercase">Vendor Credit</h4>
                                 </div>
                                 <div class="col-3">
-                                  <span class="fw-bold me-2 h5 text-black float-end"><span class="fw-normal">Debit Note No.</span><br>#{{invoice.debitnote_no}}</span>
+                                  <span class="fw-bold me-2 h5 text-black float-end"><span class="fw-normal">Vendor Credit No.</span><br>#{{invoice.debitnote_no}}</span>
                                 </div>
                               </div>
                             </section>
@@ -1210,6 +1263,29 @@
                                               </tr>
                                           </tbody>
                                       </table>
+                                      <hr style="background-color: #000000;">
+                                      <table class="table table-borderless">
+                                          <tbody>
+                                              {% if invoice.advance_paid != 0 %}
+
+                                              <tr >
+                                                <th style="color: #000;">Advance Paid </th>
+                                                <td style="color: #000;">:</td>
+                                                <th class="text-right" style="color: #000;">{{invoice.advance_paid}} /-</th>
+                                            </tr>
+                                            {% endif %}
+
+                                            {% if invoice.balance != 0 %}
+
+                                            <tr >
+                                              <th style="color: #000;">Balance </th>
+                                              <th style="color: #000;">:</th>
+                                              <th class="text-right" style="color: #000;">{{invoice.balance}} /-</th>
+                                          </tr>
+                                          {% endif %}
+
+                                          </tbody>
+                                      </table>
                                   </div>
                               </div>
                           </section>
@@ -1224,8 +1300,8 @@
                       <div class="page"  size="A4" >
                           <div class="" id="printdiv3">
                               <div class="row">
-                                  <div class="col-sm-12 py-3" style="background-image: linear-gradient(#ffae1f, black); color: white;">
-                                      <p style="font-size: 4vh; text-align: center;">DEBIT NOTE</p>
+                                  <div class="col-sm-12 py-3 text-uppercase" style="background-image: linear-gradient(#ffae1f, black); color: white;">
+                                      <p style="font-size: 4vh; text-align: center;">Vendor Credit</p>
                                       <p style=" text-align: center;"> {{cmp.company_name}} <br>
                                           {{cmp.address}} <br>
                                           {{cmp.city}},
@@ -1248,7 +1324,7 @@
                                           <table class="table table-borderless">
                                               <tbody>
                                                   <tr >
-                                                      <td style="color: #000; font-weight: bold;">DEBIT NOTE No</td>
+                                                      <td style="color: #000; font-weight: bold;">Vendor Credit No</td>
                                                       <td style="color: #000;">:</td>
                                                       <td class="text-right" style="color: #000;">{{ invoice.debitnote_no }}</td>
                                                   </tr>
@@ -1261,7 +1337,7 @@
                                                   {% endif %}
                                                   
                                                   <tr >
-                                                      <td style="color: #000; font-weight: bold;">DEBIT NOTE Date</td>
+                                                      <td style="color: #000; font-weight: bold;">Vendor Credit Date</td>
                                                       <td style="color: #000;">:</td>
                                                       <td class="text-right" style="color: #000;">{{invoice.debitnote_date | date:'d-m-Y'}}<td>
                                                   </tr>
@@ -1382,6 +1458,29 @@
                                                   <tr >
                                               </tbody>
                                           </table>
+                                          <hr style="background-color: #000000;">
+                                      <table class="table table-borderless">
+                                          <tbody>
+                                              {% if invoice.advance_paid != 0 %}
+
+                                              <tr >
+                                                <th style="color: #000;">Advance Paid </th>
+                                                <td style="color: #000;">:</td>
+                                                <th class="text-right" style="color: #000;">{{invoice.advance_paid}} /-</th>
+                                            </tr>
+                                            {% endif %}
+
+                                            {% if invoice.balance != 0 %}
+
+                                            <tr >
+                                              <th style="color: #000;">Balance </th>
+                                              <th style="color: #000;">:</th>
+                                              <th class="text-right" style="color: #000;">{{invoice.balance}} /-</th>
+                                          </tr>
+                                          {% endif %}
+
+                                          </tbody>
+                                      </table>
                                       </div>
                                   </div>
                               </section> 
@@ -1413,7 +1512,7 @@
   <div class="modal-dialog">
     <div class="modal-content" style="background-color: #3b3b3b;">
       <div class="modal-header">
-        <h3 class="modal-title text-light" id="exampleModalLabel">Share Debit Note</h3>
+        <h3 class="modal-title text-light" id="exampleModalLabel">Share Vendor Credit</h3>
         <button type="button" class="btn close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" style="font-size: x-large;">&times;</span>
         </button>

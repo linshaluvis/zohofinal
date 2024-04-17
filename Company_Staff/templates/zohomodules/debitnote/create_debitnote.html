@@ -245,14 +245,14 @@
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'company_dashboard' %}" class="text-warning-emphasis">Dashboard</a></li>
         <li class="breadcrumb-item"><a class="text-warning-emphasis">Purchase</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'debitnote_list' %}" class="text-warning-emphasis">Debit Note</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'debitnote_list' %}" class="text-warning-emphasis">Vendor Credit</a></li>
         <li class="breadcrumb-item" aria-current="page">Create</li>
       </ol>
     </nav>
       <div class="row mt-5">
           <div class="col-md-12">
             <div class="card mb-5 px-3 py-4" style="background-color: black; border-radius: 1vh;">
-              <h1 class="mb-0 text-uppercase text-right" style="color: white; font-weight: bolder;">CREATE Debit Note</h1><br>
+              <h1 class="mb-0 text-uppercase text-right" style="color: white; font-weight: bolder;">Create Vendor Credit</h1><br>
               <hr class="text-warning">
               <form action="{% url 'createdebitnote' %}" method="post" enctype="multipart/form-data"id="myForm" onsubmit="return validateForm()">
                 {% csrf_token %}
@@ -373,7 +373,7 @@
                   <div class="col-md-6 mt-2">
                     <div class="row">
                       <div class="col-md-3">
-                        <label for="" class="labels">Debit Note No.</label>
+                        <label for="" class="labels">Vendor Credit No.</label>
                       </div>
                       <div class="col-md-9">
                         <input type="text" class="form-control bg-black text-white" name="rec_invoice_no"  id="recInvoiceNumber" placeholder="{{invNo}}" required>
@@ -383,7 +383,7 @@
                   </div>
                     <div class="col-md-6 mt-2">
                       <div class="row">
-                          <label for="" class="col-md-3 labels">Debit Note Date</label>
+                          <label for="" class="col-md-3 labels">Vendor Credit Date</label>
                           <div class="col-md-9">
                               <input type="date" class="form-control bg-black text-white" id="startDate" name="start_date" value="{% now 'Y-m-d' %}">
                           </div>
@@ -509,7 +509,7 @@
                         <label for="" class="labels">Bank Acc No.</label>
                       </div>
                       <div class="col-md-9">
-                        <input type="text" class="form-control bg-black text-white" name="bnk_id" id="bnk_id" readonly>
+                        <input type="text" class="form-control bg-black text-white" name="bnk_id" id="bnk_id" >
                       </div>
                     </div>
 
@@ -565,17 +565,17 @@
                             <th style="width: 3%;"></th>
                         </tr>
                     </thead>
-                    <tbody id="items-table-body">
+                    <tbody id="items-table-body"><span class="text-danger ml-3" id="itemswar"></span>
                         <tr id='tab_row1'>
                             <td class="nnum  bg-black text-white" style="text-align: center;">1</td>
                             <td>
                                 <div class="d-flex">
                                     <div class="w-100">
                                         <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
-                                            <input required type="text" id="item1" value="" name="item_name[]" class="dropdown-toggle form-control text-white item-display" onkeyup="filterFunction($(this).attr('id'))"  data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                            <input required type="text" id="item1" value=""  name="item_name[]" class="dropdown-toggle form-control text-white item-display"  onkeyup="filterFunction($(this).attr('id'))"  data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
                                             <ul class="dropdown-menu w-100 items-available position-absolute bg-black text-white" id="menu1"  style="overflow-y: auto; height: fit-content;max-height: 40vh; border: 1px solid gray;"> 
                                                 {% for i in items %}
-                                                <li class="dropdown-item items-options text-white" onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.item_name}}`)">{{i.item_name}}</li>
+                                                <li class="dropdown-item items-options text-white"   onclick="getItemDetails($(this).parent().prev().attr('id'),`{{i.item_name}}`)">{{i.item_name}}</li>
                                                 {% endfor %}
                                             </ul>
                                             
@@ -2992,13 +2992,45 @@
       }else{
           alert('Item already exists in the Debit Note, choose another or change quantity.!')
       }
+      // Check the item against the bill
+      var customer = itm
+      var billnumber = $('#billList').val();
+      var billType = $('#billTypeSelect').val(); // Retrieve the selected bill type
 
-    }
 
+     
+
+      $.ajax({
+          type: "GET",
+          url: "{% url 'checkitembill' %}",
+          data: {
+              itemname: customer,
+              billnumber: billnumber,
+              billType: billType
+
+          },
+          success: function (response) {
+              var a = response.itemnames;
+              var b = response.qty;
+  
+              if (b == 0) {
+                  $('#itemswar').text('Selected Item not in bill').addClass('text-danger');
+              } else {
+                  $('#itemswar').text('').removeClass('text-danger');
+              }
+          }
+      });
+  }
     function changeItemQty(id){
         id_val = id.slice(3)
         var qty = document.getElementById(id).value;
         var avl_val = document.getElementById(`avl${id_val}`).innerText;
+        var item = document.getElementById(`item${id_val}`).value;
+        var billnumber = $('#billList').val();
+        var billType = $('#billTypeSelect').val(); 
+     
+
+
     
         if( parseInt(qty) > parseInt(avl_val) ){
             alert("Quantity Greater than Available Quantity")
@@ -3007,6 +3039,32 @@
         }else{
             document.getElementById(`qtyspan${id_val}`).textContent = parseInt(avl_val) - parseInt(qty);
         }
+        $.ajax({
+            type: "GET",
+            url: "{% url 'checkitembill' %}",
+            data: {
+                itemname: item,
+                billnumber: billnumber,
+                billType: billType
+  
+            },
+            success: function (response) {
+                var a = response.itemnames;
+                var b = response.qty;
+                if (b == 0) {
+                    $('#itemswar').text('Selected Item not in bill').addClass('text-danger');
+                }
+                else if (qty > b) {
+                    $('#itemswar').text('Received quantity is greater than bill quantity').addClass('text-danger');
+                } else if (qty < b) {
+                    $('#itemswar').text('Received quantity is less than bill quantity').addClass('text-danger');
+                } else {
+                    $('#itemswar').text('').removeClass('text-danger');               
+                 }
+    
+               
+            }
+        });
     }
 
     $(document).ready(function(){
@@ -5745,25 +5803,56 @@ if (vals == "Other Expense") {
                     
                     // Populate table rows with item details
                     response.forEach(function(item, index) {
-                        $('#items-table-body').append(
-                            '<tr>' +
-                            '<td class="nnum bg-black text-white" style="text-align: center;">' + (index + 1) + '</td>' +
-                            '<td>' +
-                            '<input required type="text" id="item' + (index + 1) + '" value="' + item.Items + '" name="item_name[]" class="dropdown-toggle form-control text-white item-display" onkeyup="filterFunction($(this).attr(\'id\'))" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">' +
-                            '<ul class="dropdown-menu w-100 items-available position-absolute bg-black text-white" id="menu' + (index + 1) + '" style="overflow-y: auto; height: fit-content;max-height: 40vh; border: 1px solid gray;">' +
-                            // Your dropdown items here
-                            '</ul>' +
-                            '</td>' +
-                            '<td><input type="hidden" name="item_id[]" value="' + item.ItemId + '" id="itemId' + (index + 1) + '"><input type="hidden" name="id[]" value="' + item.Id + '"><input type="text" name="hsn[]" id="hsn' + (index + 1) + '" value="' + item.HSN + '" placeholder="HSN" class="form-control bg-black text-white HSNCODE" readonly /></td>' +
-                            '<td><input type="number" name="qty[]" id="qty' + (index + 1) + '" class="form-control bg-black text-white qty mb-1" step="0" min="1" value="' + item.Quantity + '" onchange="changeItemQty(this.id, \'' + item.Quantity + '\')" required/><input type="text" id="avl' + (index + 1) + '" value="' + item.AvailableQuantity + '" style="display: none;"><div class="d-flex text-white" style="font-size: 0.7rem;"><span>Available Qty:</span><span id="qtyspan' + (index + 1) + '" class="">' + item.AvailableQuantity + '</span></div></td>' +
-                            '<td><input type="number" name="price[]" id="price' + (index + 1) + '" class="form-control bg-black text-white price" step="0" min="0" style="display: block;" value="' + item.Price + '" readonly /><input type="number" name="priceListPrice[]" id="priceListPrice' + (index + 1) + '" class="form-control bg-black text-white priceListPrice" step="0" min="0" style="display: none;" value="' + item.PriceListPrice + '" readonly /></td>' +
-                            '<td><select name="taxGST[]" id="taxGST' + (index + 1) + '" class="form-control bg-black text-white tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)"><option disabled>Select GST</option><option value="' + item.TaxRate + '">' + item.TaxRate + '% GST</option><option value="28">28.0% GST</option><option value="18">18.0% GST</option><option value="12">12.0% GST</option><option value="5">05.0% GST</option><option value="3">03.0% GST</option><option value="0">0.0% GST</option></select><select name="taxIGST[]" id="taxIGST' + (index + 1) + '" class="form-control bg-black text-white tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)"><option disabled>Select IGST</option><option value="' + item.TaxRate + '">' + item.TaxRate + '% IGST</option><option value="28">28.0% IGST</option><option value="18">18.0% IGST</option><option value="12">12.0% IGST</option><option value="5">05.0% IGST</option><option value="3">03.0% IGST</option><option value="0">0.0% IGST</option></select><div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax1" style="display: none;"> Invalid Tax %</span> </div></td>' +
-                            '<td><input type="number" name="discount[]" placeholder="Enter Discount" id="disc' + (index + 1) + '" value="' + item.Discount + '" class="form-control bg-black text-white disc" step="any" min="0" /></td>' +
-                            '<td><input type="number" name="total[]" id="total' + (index + 1) + '" class="form-control bg-black text-white total" value="' + item.Total + '" readonly /></td>' +
-                            '<td style="display: none;"><input type="hidden" id="taxamount' + (index + 1) + '" class="form-control itemTaxAmount" /></td>' +
-                            '<td><i class="fa fa-trash text-danger remove_row" style="cursor: pointer;" title="Remove Row" id="' + (index + 1) + '"></i></td>' +
-                            '</tr>'
-                        );
+                        $('#items-table-body').append(`
+                            <tr>
+                                <td class="nnum bg-black text-white" style="text-align: center;">${index + 1}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <div class="w-100">
+                                            <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
+                                                <input required type="text" id="item${index + 1}" value="${item.Items}" onchange="onchangeitem(this)" name="item_name[]" class="dropdown-toggle form-control text-white item-display" onkeyup="filterFunction($(this).attr('id'))" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                                <ul class="dropdown-menu w-100 items-available position-absolute bg-black text-white" id="menu${index + 1}" style="overflow-y: auto; height: fit-content; max-height: 40vh; border: 1px solid gray;">
+                                                    {% for i in items %}
+                                                    <li class="dropdown-item items-options text-white" onchange="itemChanged($(this).val())" onclick="getItemDetails($(this).parent().prev().attr('id'),'{{i.item_name}}')">{{i.item_name}}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <a href="#">
+                                            <button type="button" class="btn btn-outline-warning ms-1" data-target="#newItem" data-toggle="modal">+</button>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><input type="hidden" name="item_id[]" value="${item.ItemId}" id="itemId${index + 1}"><input type="hidden" name="id[]" value="${item.Id}"><input type="text" name="hsn[]" id="hsn${index + 1}" value="${item.HSN}" placeholder="HSN" class="form-control bg-black text-white HSNCODE" readonly /></td>
+                                <td><input type="number" name="qty[]" id="qty${index + 1}" class="form-control bg-black text-white qty mb-1" step="0" min="1" value="${item.Quantity}" onchange="changeItemQty(this.id, '${item.Quantity}')" required/><input type="text" id="avl${index + 1}" value="${item.AvailableQuantity}" style="display: none;"><div class="d-flex text-white" style="font-size: 0.7rem;"><span>Available Qty:</span><span id="qtyspan${index + 1}" class="">${item.AvailableQuantity}</span></div></td>
+                                <td><input type="number" name="price[]" id="price${index + 1}" class="form-control bg-black text-white price" step="0" min="0" style="display: block;" value="${item.Price}" readonly /><input type="number" name="priceListPrice[]" id="priceListPrice${index + 1}" class="form-control bg-black text-white priceListPrice" step="0" min="0" style="display: none;" value="${item.PriceListPrice}" readonly /></td>
+                                <td>
+                                    <select name="taxGST[]" id="taxGST${index + 1}" class="form-control bg-black text-white tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
+                                        <option disabled>Select GST</option>
+                                        <option value="28">28.0% GST</option>
+                                        <option value="18">18.0% GST</option>
+                                        <option value="12">12.0% GST</option>
+                                        <option value="5">05.0% GST</option>
+                                        <option value="3">03.0% GST</option>
+                                        <option value="0">0.0% GST</option>
+                                    </select>
+                                    <select name="taxIGST[]" id="taxIGST${index + 1}" class="form-control bg-black text-white tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
+                                        <option disabled>Select IGST</option>
+                                        <option value="28">28.0% IGST</option>
+                                        <option value="18">18.0% IGST</option>
+                                        <option value="12">12.0% IGST</option>
+                                        <option value="5">05.0% IGST</option>
+                                        <option value="3">03.0% IGST</option>
+                                        <option value="0">0.0% IGST</option>
+                                    </select>
+                                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax1" style="display: none;"> Invalid Tax %</span> </div>
+                                </td>
+                                <td><input type="number" name="discount[]" placeholder="Enter Discount" id="disc${index + 1}" value="${item.Discount}" class="form-control bg-black text-white disc" step="any" min="0" /></td>
+                                <td><input type="number" name="total[]" id="total${index + 1}" class="form-control bg-black text-white total" value="${item.Total}" readonly /></td>
+                                <td style="display: none;"><input type="hidden" id="taxamount${index + 1}" class="form-control itemTaxAmount" /></td>
+                                <td><i class="fa fa-trash text-danger remove_row" style="cursor: pointer;" title="Remove Row" id="${index + 1}"></i></td>
+                            </tr>
+                        `);
                     });
                     response.forEach(function(item, index) {
                         getItemDetailsbill('item' + (index + 1), item.Items);
@@ -5816,6 +5905,8 @@ if (vals == "Other Expense") {
                   alert('Select a Price List from the dropdown..!')
               }else{
                   var n = inpId.slice(4);
+                  document.getElementById('item'+n).value = itm;
+
                   $.ajax({
                     url: "{% url 'getItemDetailsAjax' %}",
                     type : 'GET',
@@ -5824,11 +5915,13 @@ if (vals == "Other Expense") {
                         listId : PLId,
                         csrfmiddlewaretoken: '{{ csrf_token }}'
                         },
+
                     
                     success: function(response) {
                         if (response.status){
                             $('#'+inpId).val(value);
                             document.getElementById('itemId'+n).value = response.id;
+
                             document.getElementById('hsn'+n).value = response.hsn;
                             document.getElementById('qtyspan'+n).innerHTML = response.avl;
                             document.getElementById('avl'+n).innerHTML = response.avl;
@@ -5852,7 +5945,46 @@ if (vals == "Other Expense") {
 
     } 
 
-    
 </script>
+        <script>
 
+    
+    function onchangeitem(selectElement) {
+        alert("ok")
+        var customer = selectElement.value;
+        var n = selectElement.id.slice(4);
+        var plc = $('#placeOfSupply').val();
+        var exists = false;
+        var previousValues = [];
+
+        $('.item-display').each(function() {
+            var itemName = $(this).val();
+            if (itemName == customer && $(this).attr('id') !== selectElement.id) {
+                exists = true;
+                console.log('exists', exists);
+            }
+        });
+
+        var billnumber = $('#billSelect').val();
+
+        $.ajax({
+            type: "GET",
+            url: "",
+            data: {
+                itemname: customer,
+                billnumber: billnumber
+            },
+            success: function(response) {
+                var a = response.itemnames;
+                var b = response.qty;
+                
+                if (b == 0) {
+                    $('#itemswar').text('Selected Item not in bill').addClass('text-danger');
+                } else {
+                    $('#itemswar').text('').removeClass('text-danger');
+                }
+            }
+        });
+    }
+</script>
 {%endblock%}

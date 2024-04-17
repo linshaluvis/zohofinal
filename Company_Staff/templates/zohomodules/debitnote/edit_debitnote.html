@@ -243,14 +243,14 @@
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'company_dashboard' %}" class="text-warning-emphasis">Dashboard</a></li>
         <li class="breadcrumb-item"><a class="text-warning-emphasis">Purchase</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'debitnote_list' %}" class="text-warning-emphasis">Debit Note</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'debitnote_list' %}" class="text-warning-emphasis">Vendor Credit</a></li>
         <li class="breadcrumb-item" aria-current="page">Edit</li>
       </ol>
     </nav>
       <div class="row mt-5">
           <div class="col-md-12">
             <div class="card mb-5 px-3 py-4" style="background-color: black; border-radius: 1vh;">
-              <h1 class="mb-0 text-uppercase text-right" style="color: white; font-weight: bolder;">EDIT DEBIT NOTE</h1><br>
+              <h1 class="mb-0 text-uppercase text-right" style="color: white; font-weight: bolder;">EDIT Vendor Credit</h1><br>
               <hr class="text-warning">
               <form action="{% url 'updatedebitnote' invoice.id %}" method="post" enctype="multipart/form-data"id="myForm" onsubmit="return validateForm()">
                 {% csrf_token %}
@@ -301,7 +301,7 @@
                   </div>
                 </div>
 
-                <div class="row mt-2">
+                <div class="row mt-2" id="billAddressSection">
                   <label for="" class="col-md-3 labels">Billing Address</label>
                   <div class="col-md-6">
                     <textarea class="form-control text-white bg-black" name="bill_address" id="billAddress" rows="4" readonly>{{invoice.billing_address}}</textarea>
@@ -367,7 +367,7 @@
                     <div class="col-md-6 mt-2">
                       <div class="row">
                         <div class="col-md-3">
-                          <label for="" class="labels">Debit Note No.</label>
+                          <label for="" class="labels">Vendor Credit No.</label>
                         </div>
                         <div class="col-md-9">
                             <input type="text" class="form-control bg-black text-white" name="rec_invoice_no" value="{{invoice.debitnote_no}}" id="recInvoiceNumber" placeholder="{{invNo}}" required>
@@ -377,7 +377,7 @@
                     </div>
                       <div class="col-md-6 mt-2">
                         <div class="row">
-                            <label for="" class="col-md-3 labels">Debit Note Date</label>
+                            <label for="" class="col-md-3 labels">Vendor Credit Date</label>
                             <div class="col-md-9">
                                 <input type="date" class="form-control bg-black text-white" id="startDate" name="start_date" value="{% now 'Y-m-d' %}">
                             </div>
@@ -2702,8 +2702,12 @@
                   document.getElementById('customerEmail').value = data.email;
                   document.getElementById('placeOfSupply').value = data.shipState;
                   document.getElementById('customerGstType').value = data.gstType;
+                  
+
+
                   if(data.street == "" && data.city == "" && data.state == ""){
-                    $("#billAddressSection").hide();
+                        $("#billAddressSection").hide();
+                        
                   }else{
                     $('#billAddressSection').show();
                     document.getElementById('billAddress').value = data.street + ',' + data.city + '\n' + data.state + '\n' + data.country  + '\n' + data.pincode ;

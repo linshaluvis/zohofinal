@@ -637,6 +637,8 @@ urlpatterns = [
     path('Compnay/downloaddebitnoteSampleImportFile',views.downloaddebitnoteSampleImportFile, name='downloaddebitnoteSampleImportFile'),
     path('Compnay/importdebitnoteFromExcel',views.importdebitnoteFromExcel, name='importdebitnoteFromExcel'),
     path('get_bills/',views.get_bills, name='get_bills'),
+    path('checkitembill/',views.checkitembill, name='checkitembill'),
+
 
     #End
     path('get_all_items_data',views.get_all_items_data,name='get_all_items_data'),

@@ -25957,16 +25957,9 @@ def createdebitnote(request):
             print(bill_type)
 
 
-            if bill_type == 'bills':
-                bill_id = Bill.objects.get(Bill_Number = request.POST['billList'])
+           
 
-                print(bill_id)
-
-            if bill_type == 'recurring':
-                bill_id = Recurring_bills.objects.get(recc_bill_no = request.POST['billList'])
-
-                
-                print(bill_id)
+           
 
            
             print(bill_no)
@@ -26057,6 +26050,27 @@ def createdebitnote(request):
                 debit_note = inv,
                 action = 'Created'
             )
+            if bill_type == 'bills':
+                # Assuming request.POST['billList'] contains the bill number
+                bill_id = Bill.objects.get(Bill_Number=request.POST['billList'])
+
+                print(bill_id)
+
+                # Update the Action field for the corresponding bill
+                bill = Bill.objects.get(Bill_Number=request.POST['billList'])
+                bill.debitNoteaction = 'Edited'
+                bill.save()
+                print("ed bill")
+            if bill_type == 'recurring':
+                bill_id = Recurring_bills.objects.get(recc_bill_no = request.POST['billList'])
+
+                print(bill_id)
+
+                # Update the Action field for the corresponding bill
+                bill = Recurring_bills.objects.get(recc_bill_no = request.POST['billList'])
+                bill.debitNoteaction = 'Edited'
+                bill.save()
+                print("ed rur")
 
             return redirect(debitnote_list)
         else:
@@ -26841,13 +26855,13 @@ def get_bills(request):
 
             # Assuming you have models named Bill and RecurringBill with relevant fields
             if bill_type == 'bills':
-                bills = Bill.objects.filter(Vendor=cust,Company=com)
+                bills = Bill.objects.filter(Vendor=cust,Company=com,debitNoteaction='Created')
                 bill_data = [{'id': bill.id, 'bill_number': bill.Bill_Number} for bill in bills]
 
                 print(bills)
 
             elif bill_type == 'recurring':
-                bills = Recurring_bills.objects.filter(vendor_details=cust,company=com)
+                bills = Recurring_bills.objects.filter(vendor_details=cust,company=com, debitNoteaction='Created')
                 bill_data = [{'id': bill.id, 'bill_number': bill.recc_bill_no} for bill in bills]
 
                 print(bills)
@@ -26863,4 +26877,76 @@ def get_bills(request):
         else:
             # Handle unsupported request method
             return JsonResponse({'error': 'Unsupported request method'}, status=405)   
+        
+        
+def checkitembill(request):
+    if 'login_id' in request.session:
+        log_id = request.session['login_id']
+        log_details= LoginDetails.objects.get(id=log_id)
+        if log_details.user_type == 'Company':
+            com = CompanyDetails.objects.get(login_details = log_details)
+        else:
+            com = StaffDetails.objects.get(login_details = log_details).company 
+        if request.method == 'GET':
+            itemname = request.GET.get('itemname')
+            bill_number = request.GET.get('billnumber')
+            bill_type = request.GET.get('billType')
+
+            print(itemname)
+            print(bill_number)
+            
+            itm = Items.objects.get(item_name=itemname,company=com)
+            print(itm.item_name+"hh")
+
+            if bill_type == 'bills':
+                try:
+                    pbill=Bill.objects.get(Bill_Number=bill_number,Company=com)
+                    print(pbill)
+                
+                    pbillitem = BillItems.objects.get(Bills=pbill, Company=com, Items=itm.item_name)
+                    print(pbillitem)
+                    billitemqty=pbillitem.Quantity
+                    print(billitemqty)
+
+                    itmname=pbillitem.Items
+                    print(itmname)
+
+                    
+                    print("bill")
+                    print(billitemqty)
+                    print(itmname)
+                except BillItems.DoesNotExist:
+                    itmname = 0
+                    billitemqty=0
+
+                data7 = {'itemnames':itmname,'qty':billitemqty}
+                return JsonResponse(data7)
+
+            elif bill_type == 'recurring':
+                rbills = Recurring_bills.objects.get(recc_bill_no=bill_number,company=com)
+                print(rbills)
+
+                try:
+                    pbillitem = RecurrItemsList.objects.get(recurr_bill_id=rbills, item_id=itm)
+                    billitemqty=pbillitem.qty
+                    itmname=pbillitem.item_id.item_name
+                    print(billitemqty)
+                    print(itmname)
+                except RecurrItemsList.DoesNotExist:
+                    itmname = 0
+                    billitemqty=0
+                print("recurring")
+                print(billitemqty)
+                print(itmname)
+
+                data7 = {'itemnames':itmname,'qty':billitemqty}
+                return JsonResponse(data7)
+            else:
+                # Handle invalid bill type
+                return JsonResponse({'error': 'Invalid bill type'})
+
+            
+        
+    
     #End
+    

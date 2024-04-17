@@ -1149,7 +1149,12 @@ class Bill(models.Model):
     Status = models.CharField(max_length=220,null=True,blank=True)
     Login_Details = models.ForeignKey(LoginDetails, on_delete=models.CASCADE,null=True,blank=True)
     Company = models.ForeignKey(CompanyDetails,on_delete=models.CASCADE)
-    Action = models.CharField(max_length=220,null=True,blank=True)
+    action_choices = [
+        ('Created', 'Created'), 
+        ('Edited', 'Edited')
+    ]
+    debitNoteaction = models.CharField(max_length=10, choices=action_choices, default='Created')
+
 
     def getNumFieldName(self):
         return 'Bill_Number'
@@ -1351,6 +1356,12 @@ class Recurring_bills(models.Model):
     note = models.TextField(null=True,blank=True)
     document=models.FileField(upload_to='docs/',null=True,blank=True)
     template1_doc = models.FileField(null=True,blank=True,upload_to='docs/')
+    action_choices = [
+        ('Created', 'Created'), 
+        ('Edited', 'Edited')
+    ]
+    debitNoteaction = models.CharField(max_length=10, choices=action_choices, default='Created')
+
 
 class recurr_comments(models.Model):
     recurr = models.ForeignKey(Recurring_bills,on_delete=models.CASCADE,null=True,blank=True)

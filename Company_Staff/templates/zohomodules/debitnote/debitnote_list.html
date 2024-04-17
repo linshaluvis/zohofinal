@@ -89,14 +89,14 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="{% url 'company_dashboard' %}" class="text-warning-emphasis">Dashboard</a></li>
-              <li class="breadcrumb-item"><a class="text-warning-emphasis">Sales</a></li>
-              <li class="breadcrumb-item" aria-current="page">All Debit Note</li>
+              <li class="breadcrumb-item"><a class="text-warning-emphasis">purchase</a></li>
+              <li class="breadcrumb-item" aria-current="page">All Vendor Credits</li>
             </ol>
         </nav>
         <div class="row mt-5">
             <div class="col-md-12">
                 <div class="card mb-5 p-5" style="background-color: black; border-radius: 1vh;">
-                    <h1 style="color: white; font-weight: bolder;">Debit Notes</h1><br>
+                    <h1 style="color: white; font-weight: bolder;">Vendor Credits</h1><br>
                     {% for message in messages %}
                     <h5>
                       <div class="alert alert-danger message text-center" style="color: black;" id="alert_danger">
@@ -117,7 +117,7 @@
                             <div class="dropdown-menu ">
                                 <a class="dropdown-item text-black" onclick="sortTable(0)" >All</a>
                                 <a class="dropdown-item text-black" onclick="sortTable(3)">Vendor Name</a>
-                                <a class="dropdown-item text-black" onclick="sortTable(2)">debitnote Number</a>
+                                <a class="dropdown-item text-black" onclick="sortTable(2)">Vendor Credit Number</a>
                             </div>
                         </div>
                         
@@ -152,13 +152,13 @@
                             <thead>
                                 <tr class="text-center text-white">
                                     <th>#</th>
-                                    <th>Date</th>
-                                    <th>Debit Note No.</th>
-                                    <th>Vendor Name</th>
-                                    <th>Mail ID</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Balance</th>
+                                    <th>DATE</th>
+                                    <th>VENDOR CREDIT NUMBER</th>
+                                    <th>VENDOR NAME</th>
+                                    <th>MAIL ID</th>
+                                    <th>AMOUNT</th>
+                                    <th>STATUS</th>
+                                    <th>BALANCE</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -188,7 +188,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content" style="background-color: #3b3b3b;">
             <div class="modal-header">
-                <h3 class="modal-title text-light" id="exampleModalLabel">Import DEBIT NOTE</h3>
+                <h3 class="modal-title text-light" id="exampleModalLabel">Import Vendor Credit</h3>
                 <button type="button" class="btn close text-white" data-bs-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true" style="font-size: x-large;">&times;</span>
                 </button>
@@ -303,7 +303,7 @@
         var ws = XLSX.utils.table_to_sheet(table);
         var wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-        XLSX.writeFile(wb, 'debitnote.xlsx');
+        XLSX.writeFile(wb, 'vendorcredit.xlsx');
     }
 
     function sortTable(columnIndex) {
