@@ -117,7 +117,7 @@
                             <div class="dropdown-menu ">
                                 <a class="dropdown-item text-black" onclick="sortTable(0)" >All</a>
                                 <a class="dropdown-item text-black" onclick="sortTable(3)">Vendor Name</a>
-                                <a class="dropdown-item text-black" onclick="sortTable(2)">Vendor Credit Number</a>
+                                <a class="dropdown-item text-black" onclick="sortinvno()">Vendor Credit Number</a>
                             </div>
                         </div>
                         
@@ -348,5 +348,36 @@
     }
   }
 </script>
+<script>
+    function sortinvno() {
+        var table = $('#recurring_inv_table');
+        var rows = table.find('tbody tr').toArray();
+
+        rows.sort(function(a, b) {
+            var invANum = $(a).find('td:eq(2)').text().toLowerCase(); // Targeting the third column (index 2) for "VENDOR CREDIT NUMBER"
+            var invBNum = $(b).find('td:eq(2)').text().toLowerCase(); // Targeting the third column (index 2) for "VENDOR CREDIT NUMBER"
+
+            // Extracting alphabetic parts from the strings
+            var alphaA = invANum.replace(/\d+/g, '');
+            var alphaB = invBNum.replace(/\d+/g, '');
+
+            // Compare alphabetic parts
+            if (alphaA !== alphaB) {
+                return alphaA.localeCompare(alphaB); // Sort alphabetically
+            } else {
+                // If alphabetic parts are the same, extract and compare numerical parts
+                var numA = parseInt(invANum.match(/\d+/)[0]);
+                var numB = parseInt(invBNum.match(/\d+/)[0]);
+                return numA - numB; // Sort numerically
+            }
+        });
+
+        // Reorder the table rows
+        $.each(rows, function(index, row) {
+            table.children('tbody').append(row);
+        });
+    }
+</script>
+
 
 {%endblock%}

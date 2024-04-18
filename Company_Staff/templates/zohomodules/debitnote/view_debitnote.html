@@ -381,7 +381,7 @@
                   <div class="dropdown-menu ">
                       <a class="dropdown-item text-black" href="" >All</a>
                       <a class="dropdown-item text-black" onclick="sortTable(0)"> Name</a>
-                      <a class="dropdown-item text-black" onclick="sortTable(1)">Vendor Credit NO.</a>
+                      <a class="dropdown-item text-black" onclick="sortinvno()">Vendor Credit NO.</a>
                   </div>
   
                   <a class="btn btn-outline-warning small_btn mt-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="button">
@@ -405,7 +405,7 @@
                           {% for inv in allInvoices %}
                           <tr onclick="window.location.href=`{% url 'view_debitnote' inv.id %}`" style="cursor: pointer;">
                             <td>
-                              <span class="name"><b>{{ inv.vendor.title }} {{ inv.vendor.first_name }} {{ inv.vendor.last_name }}</b></span><br><br>
+                              <span class="name"><b> {{ inv.vendor.first_name }} {{ inv.vendor.last_name }}</b></span><br><br>
                               <span class="invNo">{{ inv.debitnote_no }}</span>
                             </td>
                             <td>
@@ -422,18 +422,34 @@
               </div>
             </div>
             <script>
-                function sortinvno() {
-                  var table = $('#table2');
+              function sortinvno() {
+                  var table = $('#sidetable');
                   var rows = table.find('tr').toArray().slice(1); // Skip the header row
                   rows.sort(function(a, b) {
-                    var invANum = $(a).find('.invNo').text().toLowerCase();
-                    var invBNum = $(b).find('.invNo').text().toLowerCase();
-                    return invANum.localeCompare(invBNum);
+                      // Extract alphabetic parts from the strings
+                      var alphaA = $(a).find('.invNo').text().replace(/\d+/g, '').toLowerCase();
+                      var alphaB = $(b).find('.invNo').text().replace(/\d+/g, '').toLowerCase();
+                     
+
+                      
+                      // Compare alphabetic parts
+                      if (alphaA !== alphaB) {
+                          return alphaA.localeCompare(alphaB); // Sort alphabetically
+                      } else {
+                          // If alphabetic parts are the same, extract and compare numerical parts
+                          var numA = parseInt($(a).find('.invNo').text().match(/\d+/)[0]);
+                          var numB = parseInt($(b).find('.invNo').text().match(/\d+/)[0]);
+                          return numA - numB; // Sort numerically
+                         
+
+
+
+                      }
                   });
                   table.find('tbody').empty().append(rows);
-                }
-              </script>
-            
+              }
+          </script>
+          
             <div class="col-md-12 col-lg-8">
               <div style="background-color: black; border-radius: 1vh;">
                 <div class="card-header p-4">
@@ -690,7 +706,7 @@
 
                         {% if invoice.advance_paid != 0 %}
                         <div class="d-flex justify-content-between mb-4 text-white">
-                            <h6 class="text-white">Advance paid</h6>
+                            <h6 class="text-white"> Paid</h6>
                             {{invoice.advance_paid }}
                         </div>
                         {% endif %}
@@ -719,19 +735,23 @@
                           <p class="mb-0 text-right">{{item.item.item_name}}</p>
                         </div>
                         <div class="d-flex px-3 justify-content-between text-black mb-2">
-                          <h6 class="mb-0">HSN</h6>
+                          <h6 class="mb-0">HSN Code</h6>
                           <p class="mb-0 text-right">{{item.hsn}}</p>
                         </div>
                         <div class="d-flex px-3 justify-content-between text-black mb-2">
-                          <h6 class="mb-0">quantity</h6>
+                          <h6 class="mb-0">Price</h6>
+                          <p class="mb-0 text-right">{{item.price}}</p>
+                        </div>
+                        <div class="d-flex px-3 justify-content-between text-black mb-2">
+                          <h6 class="mb-0">Quantity</h6>
                           <p class="mb-0 text-right">{{item.quantity}}</p>
                         </div>
                         <div class="d-flex px-3 justify-content-between text-black mb-2">
-                          <h6 class="mb-0">Tax</h6>
+                          <h6 class="mb-0">Tax rate</h6>
                           <p class="mb-0 text-right">{{item.tax_rate}}%</p>
                         </div>
                         <div class="d-flex px-3 justify-content-between text-black mb-2">
-                          <h6 class="mb-0">Total</h6>
+                          <h6 class="mb-0">Total Amount</h6>
                           <p class="mb-0 text-right">{{item.total}}</p>
                         </div>
                         <hr class="mx-2">
@@ -874,7 +894,7 @@
 
                         {% if invoice.advance_paid != 0 %}
                         <div class="subtot-item d-flex justify-content-between">
-                          <span>Advance paid</span>
+                          <span>Paid</span>
                           <span><span>&#8377; </span> {{invoice.advance_paid }}</span>
                       </div>
                         
@@ -1080,7 +1100,7 @@
                                               {% if invoice.advance_paid != 0 %}
 
                                               <tr >
-                                                <th style="color: #000;">Advance Paid </th>
+                                                <th style="color: #000;"> Paid </th>
                                                 <td style="color: #000;">:</td>
                                                 <th class="text-right" style="color: #000;">{{invoice.advance_paid}} /-</th>
                                             </tr>
@@ -1269,7 +1289,7 @@
                                               {% if invoice.advance_paid != 0 %}
 
                                               <tr >
-                                                <th style="color: #000;">Advance Paid </th>
+                                                <th style="color: #000;"> Paid </th>
                                                 <td style="color: #000;">:</td>
                                                 <th class="text-right" style="color: #000;">{{invoice.advance_paid}} /-</th>
                                             </tr>
@@ -1464,7 +1484,7 @@
                                               {% if invoice.advance_paid != 0 %}
 
                                               <tr >
-                                                <th style="color: #000;">Advance Paid </th>
+                                                <th style="color: #000;">Paid </th>
                                                 <td style="color: #000;">:</td>
                                                 <th class="text-right" style="color: #000;">{{invoice.advance_paid}} /-</th>
                                             </tr>
@@ -1979,7 +1999,6 @@ function printSection(sectionId) {
     // document.body.style.backgroundColor = 'white';
     var printContents = document.getElementById(sectionId).innerHTML;
     console.log(printContents)
-    alert(printContents)
 
     var originalContents = document.body.innerHTML;
     var $printerDiv = $('<div class="printContainer"></div>');

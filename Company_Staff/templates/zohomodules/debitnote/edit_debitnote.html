@@ -466,17 +466,28 @@
                     <div class="row">
                       <label for="" class="col-md-3 labels">Bill Type</label>
                       <div class="col-md-9">
-                        <input type="text" class="form-control bg-black text-white" id="bill_type" name="bill_type" value="{{invoice.bill_type}}">
-                      </div>
+                        <select   class="form-control bg-black text-white" name="billTypeSelect" id="billTypeSelect">
+                                  <option value="{{invoice.bill_type}}"  selected>{{invoice.bill_type}}</option>
+                               
+
+                            <option value="bills">Bills</option>
+                            <option value="recurring">Recurring Bills</option>
+                          </select>                     
+                         </div>
                     </div>
                   </div>
                   <div class="col-md-6 mt-2">
                     <div class="row">
                       <label for="" class="col-md-3 labels">Bill No.</label>
                       <div class="col-md-9">
-                        <input type="text" class="form-control bg-black text-white" name="bill_number" value="{{invoice.bill_no}}" readonly>
+                        <select   class="form-control bg-black text-white"  id="billList" name="billList">
+                            <option value="{{invoice.bill_no}}">{{invoice.bill_no}}</option>
 
-                                             </div>
+                            
+                           
+                      </select>
+                        <!-- Bill list will be displayed here -->
+                      </div>
                     </div>
                   </div>
   
@@ -649,7 +660,7 @@
                             <th style="width: 3%;"></th>
                         </tr>
                     </thead>
-                    <tbody id="items-table-body">
+                    <tbody id="items-table-body"><span class="text-danger ml-3" id="itemswar"></span>
                         {% for i in invItems %}
                         <tr id='tab_row{{forloop.counter}}'>
                             <td class="nnum  bg-black text-white" style="text-align: center;">{{forloop.counter}}</td>
@@ -3121,14 +3132,43 @@
           alert('Item already exists in the Debit Note, choose another or change quantity.!')
       }
 
-    }
+      var customer = itm
+      var billnumber = $('#billList').val();
+      var billType = $('#billTypeSelect').val(); // Retrieve the selected bill type
 
+
+     
+
+      $.ajax({
+          type: "GET",
+          url: "{% url 'checkitembill' %}",
+          data: {
+              itemname: customer,
+              billnumber: billnumber,
+              billType: billType
+
+          },
+          success: function (response) {
+              var a = response.itemnames;
+              var b = response.qty;
+  
+              if (b == 0) {
+                  $('#itemswar').text('Selected Item not in bill').addClass('text-danger');
+              } else {
+                  $('#itemswar').text('').removeClass('text-danger');
+              }
+          }
+      });
+  }
     function changeItemQty(id,QTY){
         id_val = id.slice(3)
         var crQty = parseInt(QTY)
         var qty = document.getElementById(id).value;
         var avl_val = document.getElementById(`avl${id_val}`).value;
         var diff = Math.abs(parseInt(qty) - crQty);
+        var item = document.getElementById(`item${id_val}`).value;
+        var billnumber = $('#billList').val();
+        var billType = $('#billTypeSelect').val(); 
         
     
         if( parseInt(qty) > parseInt(avl_val) ){
@@ -3143,8 +3183,33 @@
             }
             
         }
+        $.ajax({
+            type: "GET",
+            url: "{% url 'checkitembill' %}",
+            data: {
+                itemname: item,
+                billnumber: billnumber,
+                billType: billType
+  
+            },
+            success: function (response) {
+                var a = response.itemnames;
+                var b = response.qty;
+                if (b == 0) {
+                    $('#itemswar').text('Selected Item not in bill').addClass('text-danger');
+                }
+                else if (qty > b) {
+                    $('#itemswar').text('Received quantity is greater than bill quantity').addClass('text-danger');
+                } else if (qty < b) {
+                    $('#itemswar').text('Received quantity is less than bill quantity').addClass('text-danger');
+                } else {
+                    $('#itemswar').text('').removeClass('text-danger');               
+                 }
+    
+               
+            }
+        });
     }
-
     function changeItemQuantity(id){
         id_val = id.slice(3)
         var qty = document.getElementById(id).value;
