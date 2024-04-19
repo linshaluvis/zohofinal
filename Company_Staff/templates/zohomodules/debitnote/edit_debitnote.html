@@ -265,11 +265,11 @@
                     <div class="d-flex">
                         <div class="w-100">
                             <div class="p-0 border-0 bg-none position-relative drop-box">
-                                <input required type="text" id="customer" value="{{ invoice.vendor.title }} {{ invoice.vendor.first_name }} {{ invoice.vendor.last_name }}" name="customer" class="dropdown-toggle form-control text-white customers-display" onkeyup="filterCustomers()" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Select vendor.." autocomplete="off">
+                                <input required type="text" id="customer"  value="{{ invoice.vendor.title }} {{ invoice.vendor.first_name }} {{ invoice.vendor.last_name }}" name="customer" class="dropdown-toggle form-control text-white customers-display"  onkeyup="filterCustomers()"  onblur="handleTypeChange()" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Select vendor.." autocomplete="off">
                                 <ul class="dropdown-menu w-100 customers-available position-absolute bg-black text-white" id="cust_drop"  style="overflow-y: auto; height: fit-content;max-height: 40vh; border: 1px solid gray;"> 
                                     <li class="dropdown-item customers-options text-white" onclick="getCustomerDetails('','')">Select vendor</li>
                                     {% for cust in customers %}
-                                    <li class="dropdown-item customers-options text-white" onclick="getCustomerDetails(`{{cust.id}}`,this.innerHTML)">{{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</li>
+                                    <li class="dropdown-item customers-options text-white"   onclick="getCustomerDetails(`{{cust.id}}`,this.innerHTML)">{{ cust.title }} {{ cust.first_name }} {{ cust.last_name }}</li>
                                     {% endfor %}
                                 </ul>
                                 
@@ -283,7 +283,7 @@
                 <div class="row mt-2">
                   <label for="" class="col-md-3 labels">Email</label>
                   <div class="col-md-6">
-                    <input type="text" class="form-control text-white bg-black" value="{{invoice.vendor_email}}" id="customerEmail" name="customer_email" readonly>
+                    <input type="text" class="form-control text-white bg-black" value="{{invoice.vendor_email}}" onblur="handleBillTypeChange()" id="customerEmail" name="customer_email" readonly>
                   </div>
                 </div>
 
@@ -462,20 +462,19 @@
                 </div> {% endcomment %}
 
                 <div class="row">
-                  <div class="col-md-6 mt-2">
-                    <div class="row">
-                      <label for="" class="col-md-3 labels">Bill Type</label>
-                      <div class="col-md-9">
-                        <select   class="form-control bg-black text-white" name="billTypeSelect" id="billTypeSelect">
-                                  <option value="{{invoice.bill_type}}"  selected>{{invoice.bill_type}}</option>
-                               
+                    <div class="col-md-6 mt-2">
+                        <div class="row">
+                            <label for="" class="col-md-3 labels">Bill Type</label>
+                            <div class="col-md-9">
+                                <select class="form-control bg-black text-white" name="billTypeSelect" id="billTypeSelect" onchange="handleBillTypeChange()">
+                                    <option value="bills" {% if invoice.bill_type == 'bills' %} selected {% endif %}>Bills</option>
+                                    <option value="recurring" {% if invoice.bill_type == 'recurring' %} selected {% endif %}>Recurring Bills</option>
 
-                            <option value="bills">Bills</option>
-                            <option value="recurring">Recurring Bills</option>
-                          </select>                     
-                         </div>
+                                </select>                     
+                            </div>
+                        </div>
                     </div>
-                  </div>
+                
                   <div class="col-md-6 mt-2">
                     <div class="row">
                       <label for="" class="col-md-3 labels">Bill No.</label>
@@ -2613,6 +2612,43 @@
     </div>
   </div>
 </div>
+<script>
+    function handleBillTypeChange() {
+        var vendorId = document.getElementById('customer').value;
+        var billType = document.getElementById('billTypeSelect').value;
+    
+        // Perform AJAX request to fetch bills based on vendorId and billType
+        // Replace the AJAX URL with your actual endpoint
+        var url = '/get_bills?vendor=' + vendorId + '&type=' + billType;
+    
+        // Example AJAX request using Fetch API
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                var billListDropdown = document.getElementById('billList');
+                billListDropdown.innerHTML = '';
+                billListDropdown.add(new Option('Select a Bill', '')); // Add a default option
+    
+                // Populate the dropdown with retrieved bill numbers
+                data.bills.forEach(function(bill) {
+                    var option = document.createElement('option');
+                    option.value = bill.bill_number; // Set the value of the option to the bill ID
+                    option.textContent = bill.bill_number; // Set the text content to the bill number
+                    billListDropdown.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching bills:', error));
+    }
+  
+    function handleTypeChange() {
+        $('#billTypeSelect option[value=""]').remove();
+
+        $('#billTypeSelect').append('<option value="" selected>Select Type</option>');
+
+    }
+
+   
+</script>
 
 <script>
     $(document).ready(function(){
@@ -2680,6 +2716,9 @@
         }
         // $('#placeOfSupply').val('{{invoice.place_of_supply}}')
     })
+
+       
+    
     
 
     function filterCustomers(){
@@ -2692,6 +2731,7 @@
                 $(this).hide()
             }
         })
+        
     }
 
     function getCustomerDetails(custId, name){
@@ -2736,6 +2776,10 @@
                 //   $('#applyPriceList').prop('checked') ? $('#applyPriceList').prop('checked', false) : $('#applyPriceList').prop('checked',false);
                   refreshTax();
                   checkPriceList();
+                  
+                  
+                
+
                   var recbillData = data.recbill_data;
 
                   var selectDropdown = document.getElementById("billSelect");
@@ -2760,6 +2804,7 @@
           $('#custErr').text('Select a customer..');
       }
   }
+  
 
 
   $(document).ready(function() {
@@ -3229,6 +3274,7 @@
         $('#items-table-body').on('keyup change', function () {
             refreshTax();
             calc();
+            
         });
     });
 
@@ -5932,6 +5978,221 @@ if (vals == "Other Expense") {
     }
 }
 }
+</script>
+
+<script>
+    $(document).on('change', '#billList', function() {
+        var billnumber = $('#billList').val();
+        var billType = $('#billTypeSelect').val(); // Retrieve the selected bill type
+        
+        if (billnumber != "" && billType != "") {
+            console.log('Bill number:', billnumber);
+            console.log('Bill type:', billType);
+          
+
+            
+            $.ajax({
+                type: "GET",
+                url: "{% url 'get_bill_items' %}",
+                data: {
+                    bill_number: billnumber,
+                    bill_type: billType // Include the bill type in the AJAX request data
+                },
+                success: function(response) {
+                    // Clear existing table rows
+                    $('#items-table-body').empty();
+                    
+                    // Populate table rows with item details
+                    response.forEach(function(item, index) {
+                     
+
+
+                        $('#items-table-body').append(`
+                            <tr>
+                                <td class="nnum bg-black text-white" style="text-align: center;">${index + 1}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <div class="w-100">
+                                            <div class="p-0 border-0 bg-none position-relative drop-box" style="display: block;">
+                                                <input required type="text" id="item${index + 1}" value="${item.Items}" onchange="onchangeitem(this)" name="item_name[]" class="dropdown-toggle form-control text-white item-display" onkeyup="filterFunction($(this).attr('id'))" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Items.." autocomplete="off">
+                                                <ul class="dropdown-menu w-100 items-available position-absolute bg-black text-white" id="menu${index + 1}" style="overflow-y: auto; height: fit-content; max-height: 40vh; border: 1px solid gray;">
+                                                    {% for i in items %}
+                                                    <li class="dropdown-item items-options text-white" onchange="itemChanged($(this).val())" onclick="getItemDetails($(this).parent().prev().attr('id'),'{{i.item_name}}')">{{i.item_name}}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <a href="#">
+                                            <button type="button" class="btn btn-outline-warning ms-1" data-target="#newItem" data-toggle="modal">+</button>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><input type="hidden" name="item_id[]" value="${item.ItemId}" id="itemId${index + 1}">
+                                    {% for i in invItems %}
+                                    <input type="hidden" name="id[]" value="{{i.id}}">                                    {% endfor %}
+                                    <input type="text" name="hsn[]" id="hsn${index + 1}" value="${item.HSN}" placeholder="HSN" class="form-control bg-black text-white HSNCODE" readonly /></td>
+                                <td><input type="number" name="qty[]" id="qty${index + 1}" class="form-control bg-black text-white qty mb-1" step="0" min="1" value="${item.Quantity}" onchange="changeItemQty(this.id, '${item.Quantity}')" required/><input type="text" id="avl${index + 1}" value="${item.AvailableQuantity}" style="display: none;"><div class="d-flex text-white" style="font-size: 0.7rem;"><span>Available Qty:</span><span id="qtyspan${index + 1}" class="">${item.AvailableQuantity}</span></div></td>
+                                <td><input type="number" name="price[]" id="price${index + 1}" class="form-control bg-black text-white price" step="0" min="0" style="display: block;" value="${item.Price}" readonly /><input type="number" name="priceListPrice[]" id="priceListPrice${index + 1}" class="form-control bg-black text-white priceListPrice" step="0" min="0" style="display: none;" value="${item.PriceListPrice}" readonly /></td>
+                                <td>
+                                    <select name="taxGST[]" id="taxGST${index + 1}" class="form-control bg-black text-white tax_ref tax_ref_gst" style="display: block;" onchange="taxchange(this.id)">
+                                        <option disabled>Select GST</option>
+                                        <option value="28">28.0% GST</option>
+                                        <option value="18">18.0% GST</option>
+                                        <option value="12">12.0% GST</option>
+                                        <option value="5">05.0% GST</option>
+                                        <option value="3">03.0% GST</option>
+                                        <option value="0">0.0% GST</option>
+                                    </select>
+                                    <select name="taxIGST[]" id="taxIGST${index + 1}" class="form-control bg-black text-white tax_ref tax_ref_igst" style="display: none;" onchange="taxchange(this.id)">
+                                        <option disabled>Select IGST</option>
+                                        <option value="28">28.0% IGST</option>
+                                        <option value="18">18.0% IGST</option>
+                                        <option value="12">12.0% IGST</option>
+                                        <option value="5">05.0% IGST</option>
+                                        <option value="3">03.0% IGST</option>
+                                        <option value="0">0.0% IGST</option>
+                                    </select>
+                                    <div class="mt-1" style=" text-align: center;color: red;" ><span id="invalidtax1" style="display: none;"> Invalid Tax %</span> </div>
+                                </td>
+                                <td><input type="number" name="discount[]" placeholder="Enter Discount" id="disc${index + 1}" value="${item.Discount}" class="form-control bg-black text-white disc" step="any" min="0" /></td>
+                                <td><input type="number" name="total[]" id="total${index + 1}" class="form-control bg-black text-white total" value="${item.Total}" readonly /></td>
+                                <td style="display: none;"><input type="hidden" id="taxamount${index + 1}" class="form-control itemTaxAmount" /></td>
+                                <td><i class="fa fa-trash text-danger remove_row" style="cursor: pointer;" title="Remove Row" id="${index + 1}"></i></td>
+                            </tr>
+                        `);
+                    });
+                    response.forEach(function(item, index) {
+                        getItemDetailsbill('item' + (index + 1), item.Items);
+                        refreshTax();
+                    calc();
+                    applyPriceList();
+                    });
+                
+                    refreshTax();
+                    calc();
+                    
+                   
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    console.log('Error fetching bill items: ' + errorThrown);
+                }
+            });
+        }applyPriceList();
+    });
+
+   
+
+
+   
+    
+    function getItemDetailsbill(inpId, value){
+      var itm = value;
+      var exists = false;
+      var plc = $('#placeOfSupply').val();
+      var PLId = $('#priceListIds').val();
+
+   
+
+      $('#items-table-body tr').each(function () {
+          var html = $(this).html();
+          if (html != '') {
+              var itemName = $(this).find('.item-display').val();
+              console.log(itm,itemName);
+              if(itemName == itm){
+                  exists = true;
+                  console.log('exists',exists);
+              }
+          }
+      });
+      console.log('status',exists);
+
+      if(exists){
+          if(plc != ""){
+              if($('#applyPriceList').prop('checked') && PLId ==""){
+                  alert('Select a Price List from the dropdown..!')
+              }else{
+                  var n = inpId.slice(4);
+                  document.getElementById('item'+n).value = itm;
+
+                  $.ajax({
+                    url: "{% url 'getItemDetailsAjax' %}",
+                    type : 'GET',
+                    data:{
+                        item : value,
+                        listId : PLId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+
+                    
+                    success: function(response) {
+                        if (response.status){
+                            $('#'+inpId).val(value);
+                            document.getElementById('itemId'+n).value = response.id;
+
+                            document.getElementById('hsn'+n).value = response.hsn;
+                            document.getElementById('qtyspan'+n).innerHTML = response.avl;
+                            document.getElementById('avl'+n).innerHTML = response.avl;
+                            document.getElementById('price'+n).value = response.sales_rate;
+                            document.getElementById('priceListPrice'+n).value = response.PLPrice;
+                            document.getElementById('taxGST'+n).value = response.gst;
+                            document.getElementById('taxIGST'+n).value = response.igst;
+                            refreshTax();
+                            calc();
+                        }
+                    },
+                });
+            }
+            
+        }else{
+            alert('Select Place of Supply.!')
+        }
+      }else{
+          alert('Item already exists in the Debit Note, choose another or change quantity.!')
+      }
+
+    } 
+
+</script>
+        <script>
+
+    
+    function onchangeitem(selectElement) {
+        alert("ok")
+        var customer = selectElement.value;
+        var n = selectElement.id.slice(4);
+        var plc = $('#placeOfSupply').val();
+        var exists = false;
+        var previousValues = [];
+
+        $('.item-display').each(function() {
+            var itemName = $(this).val();
+            if (itemName == customer && $(this).attr('id') !== selectElement.id) {
+                exists = true;
+                console.log('exists', exists);
+            }
+        });
+
+        var billnumber = $('#billSelect').val();
+
+        $.ajax({
+            type: "GET",
+            url: "",
+            data: {
+                itemname: customer,
+                billnumber: billnumber
+            },
+            success: function(response) {
+                var a = response.itemnames;
+                var b = response.qty;
+                
+                if (b == 0) {
+                    $('#itemswar').text('Selected Item not in bill').addClass('text-danger');
+                } else {
+                    $('#itemswar').text('').removeClass('text-danger');
+                }
+            }
+        });
+    }
 </script>
 
 {%endblock%}

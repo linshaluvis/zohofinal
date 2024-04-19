@@ -26424,6 +26424,7 @@ def updatedebitnote(request, id):
             com = StaffDetails.objects.get(login_details = log_details).company
 
         rec_inv = debitnote.objects.get(id = id)
+        bill_type = request.POST['billTypeSelect']
         if request.method == 'POST':
             invNum = request.POST['rec_invoice_no']
 
@@ -26456,12 +26457,12 @@ def updatedebitnote(request, id):
             rec_inv.gstin = request.POST['customer_gstin']
             rec_inv.place_of_supply = request.POST['place_of_supply']
             # rec_inv.profile_name = request.POST['profile_name']
-            rec_inv.bill_type = None if request.POST['bill_type'] == "" else request.POST['bill_type']
+            rec_inv.bill_type = request.POST['billTypeSelect']
             rec_inv.reference_no = request.POST['reference_number']
             rec_inv.debitnote_no = invNum
             # rec_inv.payment_terms = Company_Payment_Term.objects.get(id = request.POST['payment_term'])
             rec_inv.debitnote_date = request.POST['start_date']
-            rec_inv.bill_no = request.POST['bill_number']
+            rec_inv.bill_no = request.POST['billList']
             # rec_inv.salesOrder_no = request.POST['order_number']
             rec_inv.price_list_applied = True if 'priceList' in request.POST else False
             rec_inv.price_list = None if request.POST['price_list_id'] == "" else PriceList.objects.get(id = request.POST['price_list_id'])
@@ -26500,57 +26501,26 @@ def updatedebitnote(request, id):
             total = request.POST.getlist("total[]")
             inv_item_ids = request.POST.getlist("id[]")
             invItem_ids = [int(id) for id in inv_item_ids]
+            print(invItem_ids)
 
             inv_items = debitnote_item.objects.filter(debit_note = rec_inv)
+            print(inv_items)
             object_ids = [obj.id for obj in inv_items]
-
-            ids_to_delete = [obj_id for obj_id in object_ids if obj_id not in invItem_ids]
-            for itmId in ids_to_delete:
-                invItem = debitnote_item.objects.get(id = itmId)
-                item = Items.objects.get(id = invItem.item.id)
-                item.current_stock += invItem.quantity
+            for i in debitnote_item.objects.filter(debit_note = rec_inv):
+                item = Items.objects.get(id = i.item.id)
+                item.current_stock += i.quantity
                 item.save()
+            debitnote_item.objects.filter(debit_note = rec_inv).delete()
 
-            debitnote_item.objects.filter(id__in=ids_to_delete).delete()
-            
-            count = debitnote_item.objects.filter(debit_note = rec_inv).count()
 
-            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total)==len(invItem_ids) and invItem_ids and itemId and itemName and hsn and qty and price and tax and discount and total:
-                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total,invItem_ids)
+            if len(itemId)==len(itemName)==len(hsn)==len(qty)==len(price)==len(tax)==len(discount)==len(total) and itemId and itemName and hsn and qty and price and tax and discount and total:
+                mapped = zip(itemId,itemName,hsn,qty,price,tax,discount,total)
                 mapped = list(mapped)
                 for ele in mapped:
-                    if int(len(itemId))>int(count):
-                        if ele[8] == 0:
-                            itm = Items.objects.get(id = int(ele[0]))
-                            debitnote_item.objects.create(company = com, login_details = com.login_details, debit_note = rec_inv, item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax_rate = ele[5], discount = float(ele[6]), total = float(ele[7]))
-                            itm.current_stock -= int(ele[3])
-                            itm.save()
-                        else:
-                            itm = Items.objects.get(id = int(ele[0]))
-                            inItm = debitnote_item.objects.get(id = int(ele[8]))
-                            crQty = int(inItm.quantity)
-                            
-                            debitnote_item.objects.filter( id = int(ele[8])).update(debit_note = rec_inv, item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax_rate = ele[5], discount = float(ele[6]), total = float(ele[7]))
-
-                            if crQty < int(ele[3]):
-                                itm.current_stock -=  abs(crQty - int(ele[3]))
-                            elif crQty > int(ele[3]):
-                                itm.current_stock += abs(crQty - int(ele[3]))
-                            itm.save()
-                    else:
-                        itm = Items.objects.get(id = int(ele[0]))
-                        inItm = debitnote_item.objects.get(id = int(ele[8]))
-                        crQty = int(inItm.quantity)
-
-                        debitnote_item.objects.filter( id = int(ele[8])).update(debit_note = rec_inv, item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax_rate = ele[5], discount = float(ele[6]), total = float(ele[7]))
-
-                        if crQty < int(ele[3]):
-                            itm.current_stock -=  abs(crQty - int(ele[3]))
-                        elif crQty > int(ele[3]):
-                            itm.current_stock += abs(crQty - int(ele[3]))
-                        itm.save()
-            
-            # Save transaction
+                    itm = Items.objects.get(id = int(ele[0]))
+                    debitnote_item.objects.create(company = com, login_details = com.login_details, debit_note = rec_inv, item = itm, hsn = ele[2], quantity = int(ele[3]), price = float(ele[4]), tax_rate = ele[5], discount = float(ele[6]), total = float(ele[7]))
+                    itm.current_stock -= int(ele[3])
+                    itm.save()
                     
             debitnote_History.objects.create(
                 company = com,
@@ -26558,6 +26528,27 @@ def updatedebitnote(request, id):
                 debit_note = rec_inv,
                 action = 'Edited'
             )
+            if bill_type == 'bills':
+                # Assuming request.POST['billList'] contains the bill number
+                bill_id = Bill.objects.get(Bill_Number=request.POST['billList'])
+
+                print(bill_id)
+
+                # Update the Action field for the corresponding bill
+                bill = Bill.objects.get(Bill_Number=request.POST['billList'])
+                bill.debitNoteaction = 'Edited'
+                bill.save()
+                print("ed bill")
+            if bill_type == 'recurring':
+                bill_id = Recurring_bills.objects.get(recc_bill_no = request.POST['billList'])
+
+                print(bill_id)
+
+                # Update the Action field for the corresponding bill
+                bill = Recurring_bills.objects.get(recc_bill_no = request.POST['billList'])
+                bill.debitNoteaction = 'Edited'
+                bill.save()
+                print("ed rur")
 
             return redirect(view_debitnote, id)
         else:
@@ -26855,13 +26846,13 @@ def get_bills(request):
 
             # Assuming you have models named Bill and RecurringBill with relevant fields
             if bill_type == 'bills':
-                bills = Bill.objects.filter(Vendor=cust,Company=com,debitNoteaction='Created')
+                bills = Bill.objects.filter(Vendor=cust,Company=com)
                 bill_data = [{'id': bill.id, 'bill_number': bill.Bill_Number} for bill in bills]
 
                 print(bills)
 
             elif bill_type == 'recurring':
-                bills = Recurring_bills.objects.filter(vendor_details=cust,company=com, debitNoteaction='Created')
+                bills = Recurring_bills.objects.filter(vendor_details=cust,company=com, )
                 bill_data = [{'id': bill.id, 'bill_number': bill.recc_bill_no} for bill in bills]
 
                 print(bills)

@@ -381,7 +381,7 @@
                   <div class="dropdown-menu ">
                       <a class="dropdown-item text-black" href="" >All</a>
                       <a class="dropdown-item text-black" onclick="sortTable(0)"> Name</a>
-                      <a class="dropdown-item text-black" onclick="sortinvno()">Vendor Credit NO.</a>
+                      <a class="dropdown-item text-black" onclick="sortTable(1)">Vendor Credit NO.</a>
                   </div>
   
                   <a class="btn btn-outline-warning small_btn mt-4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="button">
@@ -422,32 +422,7 @@
               </div>
             </div>
             <script>
-              function sortinvno() {
-                  var table = $('#sidetable');
-                  var rows = table.find('tr').toArray().slice(1); // Skip the header row
-                  rows.sort(function(a, b) {
-                      // Extract alphabetic parts from the strings
-                      var alphaA = $(a).find('.invNo').text().replace(/\d+/g, '').toLowerCase();
-                      var alphaB = $(b).find('.invNo').text().replace(/\d+/g, '').toLowerCase();
-                     
-
-                      
-                      // Compare alphabetic parts
-                      if (alphaA !== alphaB) {
-                          return alphaA.localeCompare(alphaB); // Sort alphabetically
-                      } else {
-                          // If alphabetic parts are the same, extract and compare numerical parts
-                          var numA = parseInt($(a).find('.invNo').text().match(/\d+/)[0]);
-                          var numB = parseInt($(b).find('.invNo').text().match(/\d+/)[0]);
-                          return numA - numB; // Sort numerically
-                         
-
-
-
-                      }
-                  });
-                  table.find('tbody').empty().append(rows);
-              }
+              
           </script>
           
             <div class="col-md-12 col-lg-8">
@@ -1795,10 +1770,24 @@
     var rows = Array.from(tbody.querySelectorAll('tr'));
     if (col == 1){
       rows.sort(function(a, b) {
-        var nameA = a.querySelector('.invNo').innerText.toLowerCase();
-        var nameB = b.querySelector('.invNo').innerText.toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
+        // Extract invoice numbers and parts
+        var invNoA = $(a).find('.invNo').text().trim();
+        var invNoB = $(b).find('.invNo').text().trim();
+    
+        // Extract alphabetic and numeric parts
+        var alphaA = invNoA.replace(/\d+/g, '').toLowerCase();
+        var alphaB = invNoB.replace(/\d+/g, '').toLowerCase();
+        var numA = parseInt(invNoA.match(/\d+/)[0]);
+        var numB = parseInt(invNoB.match(/\d+/)[0]);
+    
+        // Compare alphabetic parts
+        if (alphaA !== alphaB) {
+            return alphaA.localeCompare(alphaB); // Sort alphabetically
+        } else {
+            // If alphabetic parts are the same, compare numeric parts
+            return numA - numB; // Sort numerically
+        }
+    });
     }else{
       rows.sort(function(a, b) {
           var nameA = a.querySelector('.name').innerText.toLowerCase();
@@ -1811,6 +1800,32 @@
       tbody.appendChild(row);
     });
   }
+  function sortinvno() {
+    var table = $('#sidetable');
+    var rows = table.find('tr').toArray().slice(1); // Skip the header row
+    rows.sort(function(a, b) {
+        // Extract alphabetic parts from the strings
+        var alphaA = $(a).find('.invNo').text().replace(/\d+/g, '').toLowerCase();
+        var alphaB = $(b).find('.invNo').text().replace(/\d+/g, '').toLowerCase();
+       
+
+        
+        // Compare alphabetic parts
+        if (alphaA !== alphaB) {
+            return alphaA.localeCompare(alphaB); // Sort alphabetically
+        } else {
+            // If alphabetic parts are the same, extract and compare numerical parts
+            var numA = parseInt($(a).find('.invNo').text().match(/\d+/)[0]);
+            var numB = parseInt($(b).find('.invNo').text().match(/\d+/)[0]);
+            return numA - numB; // Sort numerically
+           
+
+
+
+        }
+    });
+    table.find('tbody').empty().append(rows);
+}
 
   function filterTable(key) {
     var rows = document.querySelectorAll('#sidetable tbody tr');
